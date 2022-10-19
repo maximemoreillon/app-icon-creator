@@ -1,23 +1,15 @@
 <template>
-  <canvas
-    ref="canvas"/>
+  <canvas ref="canvas"/>
 </template>
 
 <script>
 export default {
   name: 'AppIcon',
   props: {
-    techno: String,
     image: File,
-    logo: Boolean,
   },
   data(){
     return {
-
-      techno_lookup: {
-
-      },
-
       context: null,
       canvas: null,
     }
@@ -25,16 +17,6 @@ export default {
   mounted(){
     this.get_canvas_and_context()
     this.draw_base_image()
-
-
-
-
-
-
-
-
-
-
 
   },
   methods: {
@@ -64,31 +46,6 @@ export default {
         if(this.logo) this.draw_logo()
 
       }, false)
-    },
-    draw_logo(){
-
-      const {width, height} = this.canvas
-
-      const ratio = 0.15
-      const offset = 0.05 * width
-
-      const center = {x: (1 - ratio) * width, y: ratio * height}
-
-      const img_width = (2 * ratio) * width
-
-      const corner = {
-        x: center.x - 0.5 * img_width - offset,
-        y: center.y - 0.5 * img_width + offset}
-
-      const img = new Image()
-      img.src = require('@/assets/logo.png')
-      img.addEventListener('load', () => {
-
-        this.context.drawImage(img, corner.x, corner.y, img_width, img_width)
-
-      }, false)
-
-
     },
     draw_techno(){
 
