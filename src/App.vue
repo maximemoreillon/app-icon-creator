@@ -92,7 +92,6 @@ export default {
       this.draw_main_image()
       for (let i=1; i<=4; i++) {
         this.draw_corner(i)
-
       }
     },
     draw_main_image() {
@@ -127,42 +126,52 @@ export default {
       const {file, label} = image
 
 
+
+
       if (!file) return
-      const { width: canvasWidth, height: canvasHeight } = this.canvas
 
-
-      // TODO: Preserve aspect radio of original image
-
-      // const { width: imageOriginalWidth, height: imageOriginalHeight } = file
-
-
-      let imageCenter
-
-
-
-      const ratio = 0.2
-      const inverse_ratio = 1 - ratio
-
-      const radius = ratio * canvasWidth
-      const imageWidth = 0.55 * 2 * radius
-
-
-      if (label === 'top-left') imageCenter = { x: ratio * canvasWidth, y: ratio * canvasHeight }
-      if (label === 'bottom-left') imageCenter = { x: ratio * canvasWidth, y: inverse_ratio * canvasHeight }
-      if (label === 'top-right') imageCenter = { x: inverse_ratio * canvasWidth, y: ratio * canvasHeight }
-      if (label === 'bottom-right') imageCenter = { x: inverse_ratio * canvasWidth, y: inverse_ratio * canvasHeight }
-
-      const corner = { x: imageCenter.x - 0.5 * imageWidth, y: imageCenter.y - 0.5 * imageWidth }
+      console.log(`Corner ${label} has image`)
+      
 
       const img = new Image()
       img.src = URL.createObjectURL(file)
       img.addEventListener('load', () => {
 
+        //canvas width and height should be the same
+        const { width: canvasWidth, height: canvasHeight } = this.canvas
+
+
+        // TODO: Preserve aspect radio of original image
+        const img_min_dims = Math.max(img.width, img.height)
+
+        console.log(img_min_dims)
+
+
+        let imageCenter
+
+        const ratio = 0.2
+        const inverse_ratio = 1 - ratio
+
+        const radius = ratio * canvasWidth
+        const imageMaxHeightOrWidth = 0.55 * 2 * radius
+
+
+
+
+        if (label === 'top-left') imageCenter = { x: ratio * canvasWidth, y: ratio * canvasHeight }
+        if (label === 'bottom-left') imageCenter = { x: ratio * canvasWidth, y: inverse_ratio * canvasHeight }
+        if (label === 'top-right') imageCenter = { x: inverse_ratio * canvasWidth, y: ratio * canvasHeight }
+        if (label === 'bottom-right') imageCenter = { x: inverse_ratio * canvasWidth, y: inverse_ratio * canvasHeight }
+
+        const imageCorner = { x: imageCenter.x - 0.5 * imageMaxHeightOrWidth, y: imageCenter.y - 0.5 * imageMaxHeightOrWidth }
+
         // Draw a white background around image
         this.context.arc(imageCenter.x, imageCenter.y, radius, radius, 0, 2 * Math.PI, false)
         this.context.fillStyle = 'white'
         this.context.fill()
-        this.context.drawImage(img, corner.x, corner.y, imageWidth, imageWidth)
+
+        // Draw the image
+        this.context.drawImage(img, imageCorner.x, imageCorner.y, imageMaxHeightOrWidth, imageMaxHeightOrWidth)
 
       }, false)
 
