@@ -6,22 +6,27 @@
 
      
 
-      <canvas class="output" ref="canvas" />
 
-      <div style="grid-area: main;">
-        <ImageInput v-model="main.file" />
-      </div>
 
-      <div v-for="(image, index) in corners" :key="index" :class="image.label" :style="{ 'grid-area': image.label}">
-        <!-- <input type="file" @change="imageChanged(image, $event)" accept="image/*" > -->
-        <ImageInput v-model="image.file"/>
+      <div v-for="(image, index) in images" :key="index" :class="image.label" :style="{ 'grid-area': image.label}" class="imageWrapper">
+        
+        <ImageInput v-model="image.file" />
+        <div v-if="image.label !== 'main'">
+          <input type="checkbox" v-model="image.drawBackground">
+          <label>Draw background</label>
+        </div>
+        
+
+        
       </div>
 
     </div>
 
-    <div style="grid-area: button;">
-      <button @click="draw_icon()">Draw</button>
-    </div>
+
+    <canvas class="output" ref="canvas" />
+
+
+    
 
   
 
@@ -46,13 +51,13 @@ export default {
     return {
       image: null,
 
-      main: {
-        label: 'main',
-        file: null,
-      },
+      
 
-      corners: [
-
+      images: [
+        {
+          label: 'main',
+          file: null,
+        },
         {
           label: 'top-left',
           file: null,
@@ -83,6 +88,14 @@ export default {
   mounted() {
     this.get_canvas_and_context()
   },
+  watch: {
+    images: {
+      handler() {
+        this.draw_icon()
+      },
+      deep: true,
+    },
+  },
   methods: {
     get_canvas_and_context() {
       this.canvas = this.$refs.canvas
@@ -90,15 +103,16 @@ export default {
     },
 
     async draw_icon(){
+      const [mainImage, ...corners] = this.images
       this.clear_canvas()
-      await this.draw_main_image()
-      this.corners.forEach( corner => { this.draw_corner(corner) })
+      await this.draw_main_image(mainImage)
+      corners.forEach( corner => { this.draw_corner(corner) })
 
 
     },
 
-    loadImage(image){
-      return new Promise ((resolve) => {
+    loadImage(image) {
+      return new Promise((resolve) => {
         const img = new Image()
         img.src = URL.createObjectURL(image)
 
@@ -107,17 +121,13 @@ export default {
         }, false)
       })
     },
-    wait(delay){
-      return new Promise((resolve) => {
-        setTimeout(resolve, delay)
-      })
-    },
+
     clear_canvas(){
       this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
     },
-    async draw_main_image() {
-      const image = this.main.file
+    async draw_main_image(mainImage) {
+      const image = mainImage.file
       if(!image) return
 
       const img = await this.loadImage(image)
@@ -144,35 +154,35 @@ export default {
       const {file, label} = corner
 
       if (!file) return
-
-      console.log(`Corner ${label} has image`)
       
-
       const img = await this.loadImage(file)
 
-
-      //canvas width and height should be the same
       const { width: canvasWidth, height: canvasHeight } = this.canvas
-
-
-      // TODO: Preserve aspect radio of original image
-      // const img_min_dims = Math.max(img.width, img.height)
 
       
       const ratio = 0.2
       const inverse_ratio = 1 - ratio
       
       const radius = ratio * canvasWidth
-      const imageMaxHeightOrWidth = 0.55 * 2 * radius
-      
-      let imageCenter
 
+      const imageMaxHeightOrWidth = 0.55 * 2 * radius
+      const imageAspectRation = img.height / img.width 
+
+      const imaginaryHeight = imageMaxHeightOrWidth * imageAspectRation
+      const imaginaryWidth = imageMaxHeightOrWidth / imageAspectRation
+      
+      const imageWidth = Math.min(imaginaryWidth, imageMaxHeightOrWidth)
+      const imageHeight = Math.min(imaginaryHeight, imageMaxHeightOrWidth)
+      
+      
+      // Compute center of image
+      let imageCenter
       if (label === 'top-left') imageCenter = { x: ratio * canvasWidth, y: ratio * canvasHeight }
       if (label === 'bottom-left') imageCenter = { x: ratio * canvasWidth, y: inverse_ratio * canvasHeight }
       if (label === 'top-right') imageCenter = { x: inverse_ratio * canvasWidth, y: ratio * canvasHeight }
       if (label === 'bottom-right') imageCenter = { x: inverse_ratio * canvasWidth, y: inverse_ratio * canvasHeight }
 
-      const imageCorner = { x: imageCenter.x - 0.5 * imageMaxHeightOrWidth, y: imageCenter.y - 0.5 * imageMaxHeightOrWidth }
+      const imageCorner = { x: imageCenter.x - 0.5 * imageWidth, y: imageCenter.y - 0.5 * imageHeight }
 
       // Draw a white background around image
       if (corner.drawBackground) {
@@ -180,11 +190,10 @@ export default {
         this.context.arc(imageCenter.x, imageCenter.y, radius, radius, 0, 2 * Math.PI, false)
         this.context.fillStyle = 'white'
         this.context.fill()
-
       }
 
       // Draw the image
-      this.context.drawImage(img, imageCorner.x, imageCorner.y, imageMaxHeightOrWidth, imageMaxHeightOrWidth)
+      this.context.drawImage(img, imageCorner.x, imageCorner.y, imageWidth, imageHeight)
 
 
     }
@@ -196,17 +205,20 @@ export default {
 <style>
 .wrapper {
   display: grid;
+  gap: 1em;
   grid-template-areas: 
     ' top-left . top-right'
-    '. output .'
     '. main .'
-    'bottom-left button bottom-right';
+    'bottom-left . bottom-right';
 }
 
+.imageWrapper{
+  border: 1px solid #dddddd;
+  padding: 1em;
+}
 
 .output {
   grid-area: output;
   outline: 1px solid red;
 }
-
 </style>
