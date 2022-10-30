@@ -1,51 +1,27 @@
 <template>
   <div id="app">
-    <h1>App icon creator</h1>
 
     <div class="wrapper">
-
-     
-
-
-
-      <div v-for="(image, index) in images" :key="index" :class="image.label" :style="{ 'grid-area': image.label}" class="imageWrapper">
-        
-        <ImageInput v-model="image.file" />
-        <div v-if="image.label !== 'main'">
-          <input type="checkbox" v-model="image.drawBackground">
-          <label>Draw background</label>
-        </div>
-        
-
-        
+      <div class="inputWrapper">
+        <ImageManagement v-model="images[index]" v-for="(image, index) in images" :key="index" />
       </div>
 
+      <div class="outputWrapper">
+        <canvas class="output" ref="canvas" />
+      </div>
     </div>
-
-
-    <canvas class="output" ref="canvas" />
-
-
-    
-
-  
-
-
-
-
 
   </div>
 </template>
 
 <script>
 
-// import AppIcon from '@/components/AppIcon.vue'
-import ImageInput from '@/components/ImageInput.vue'
+import ImageManagement from '@/components/ImageManagement.vue'
 
 export default {
   name: 'App',
   components: {
-    ImageInput
+    ImageManagement
   },
   data(){
     return {
@@ -206,19 +182,35 @@ export default {
 .wrapper {
   display: grid;
   gap: 1em;
+  grid-template-areas: 'inputWrapper outputWrapper';
+  grid-template-columns: 1fr 1fr;
+}
+
+.inputWrapper {
+  grid-area: inputWrapper;
+  border: 1px solid #dddddd;
+  padding: 1em;
+  display: grid;
+  gap: 1em;
   grid-template-areas: 
     ' top-left . top-right'
     '. main .'
     'bottom-left . bottom-right';
+  grid-template-rows: 1fr 2fr 1fr;
+  grid-template-columns: 1fr 2fr 1fr;
+  aspect-ratio: 1;
 }
 
-.imageWrapper{
-  border: 1px solid #dddddd;
-  padding: 1em;
+
+
+.outputWrapper {
+  grid-area: outputWrapper;
 }
 
 .output {
-  grid-area: output;
-  outline: 1px solid red;
+  border: 1px solid #dddddd;
+  aspect-ratio: 1;
+  width: 100%;
+
 }
 </style>
