@@ -1,35 +1,17 @@
 <template>
-  <v-app>
+  <div id="app">
 
-    <v-app-bar app dark color="#444444">
-      <v-toolbar-title>Icon maker</v-toolbar-title>
-    </v-app-bar>
+    <div class="wrapper">
+      <div class="inputWrapper">
+        <ImageManagement v-model="images[index]" v-for="(image, index) in images" :key="index" />
+      </div>
 
-    <v-main class="grey lighten-4">
-      
-      <v-container>
-        <v-row>
-          <v-col cols="12" md="6">
-            <v-card >
-              <v-card-title>Input</v-card-title>
-              <v-card-text class="inputWrapper">
-                <ImageManagement v-model="images[index]" v-for="(image, index) in images" :key="index" />
-              </v-card-text>
-            </v-card>
-          </v-col>
+      <div class="outputWrapper">
+        <canvas class="output" ref="canvas" />
+      </div>
+    </div>
 
-          <v-col cols="12" md="6">
-            <v-card>
-              <v-card-title>Output</v-card-title>
-              <v-card-text class="outputWrapper">
-                <canvas class="output" ref="canvas"></canvas>
-              </v-card-text>
-            </v-card>
-          </v-col>
-        </v-row>
-      </v-container>
-    </v-main>
-  </v-app>
+  </div>
 </template>
 
 <script>
@@ -41,11 +23,11 @@ export default {
   components: {
     ImageManagement
   },
-  data() {
+  data(){
     return {
       image: null,
 
-
+      
 
       images: [
         {
@@ -96,11 +78,11 @@ export default {
       this.context = this.canvas.getContext('2d')
     },
 
-    async draw_icon() {
+    async draw_icon(){
       const [mainImage, ...corners] = this.images
       this.clear_canvas()
       await this.draw_main_image(mainImage)
-      corners.forEach(corner => { this.draw_corner(corner) })
+      corners.forEach( corner => { this.draw_corner(corner) })
 
 
     },
@@ -116,13 +98,13 @@ export default {
       })
     },
 
-    clear_canvas() {
+    clear_canvas(){
       this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
     },
     async draw_main_image(mainImage) {
       const image = mainImage.file
-      if (!image) return
+      if(!image) return
 
       const img = await this.loadImage(image)
 
@@ -144,31 +126,31 @@ export default {
 
 
     async draw_corner(corner) {
-
-      const { file, label } = corner
+      
+      const {file, label} = corner
 
       if (!file) return
-
+      
       const img = await this.loadImage(file)
 
       const { width: canvasWidth, height: canvasHeight } = this.canvas
 
-
+      
       const ratio = 0.2
       const inverse_ratio = 1 - ratio
-
+      
       const radius = ratio * canvasWidth
 
       const imageMaxHeightOrWidth = 0.55 * 2 * radius
-      const imageAspectRation = img.height / img.width
+      const imageAspectRation = img.height / img.width 
 
       const imaginaryHeight = imageMaxHeightOrWidth * imageAspectRation
       const imaginaryWidth = imageMaxHeightOrWidth / imageAspectRation
-
+      
       const imageWidth = Math.min(imaginaryWidth, imageMaxHeightOrWidth)
       const imageHeight = Math.min(imaginaryHeight, imageMaxHeightOrWidth)
-
-
+      
+      
       // Compute center of image
       let imageCenter
       if (label === 'top-left') imageCenter = { x: ratio * canvasWidth, y: ratio * canvasHeight }
@@ -197,21 +179,38 @@ export default {
 </script>
 
 <style>
-.inputWrapper {
+.wrapper {
   display: grid;
   gap: 1em;
-  grid-template-areas:
+  grid-template-areas: 'inputWrapper outputWrapper';
+  grid-template-columns: 1fr 1fr;
+}
+
+.inputWrapper {
+  grid-area: inputWrapper;
+  border: 1px solid #dddddd;
+  padding: 1em;
+  display: grid;
+  gap: 1em;
+  grid-template-areas: 
     ' top-left . top-right'
     '. main .'
     'bottom-left . bottom-right';
-  /* grid-template-rows: 1fr 1.5fr 1fr; */
-  grid-template-columns: 1fr 1.5fr 1fr;
-
+  grid-template-rows: 1fr 2fr 1fr;
+  grid-template-columns: 1fr 2fr 1fr;
+  aspect-ratio: 1;
 }
 
 
 
+.outputWrapper {
+  grid-area: outputWrapper;
+}
+
 .output {
+  border: 1px solid #dddddd;
+  aspect-ratio: 1;
   width: 100%;
+
 }
 </style>

@@ -1,21 +1,39 @@
 <template>
-    <div :class="image.label" :style="{ 'grid-area': image.label }"
+    <v-card 
+        outlined
+        :class="image.label" 
+        :style="{ 'grid-area': image.label }"
         class="imageWrapper">
 
-        <div class="imagePreviewWrapper">
+        <v-toolbar flat dense>
+            
+            <v-btn v-if="image.file" @click="clearInput()" icon class="clearButton">
+                <v-icon>mdi-close</v-icon>
+            </v-btn>
+            <v-file-input v-else hide-input accept="image/*" v-model="imageFile" />
+            <v-spacer />
+            <v-btn 
+                v-if="image.label !== 'main'"
+                icon 
+                @click="image.drawBackground = !image.drawBackground" 
+                :color="image.drawBackground ? '#c00000' : undefined">
+                <v-icon>mdi-arrange-send-backward</v-icon>
+            </v-btn>
+            
+
+        </v-toolbar>
+        <v-divider />
+
+
+            
+        <v-card-text class="imagePreviewWrapper">
             <img v-if="image.file" :src="imageurl" alt="" class="imagePreview">
-        </div>
-        
-        <input type="file" @change="fileChanged($event)" accept="image/*" ref="fileInput" class="fileInput">
+            <v-icon v-else size="48">mdi-image-off</v-icon>
+        </v-card-text>
+            
 
-        <button :disabled="!image.file" @click="clearInput()" class="clearButton">Clear</button>
-
-        <div v-if="image.label !== 'main'" class="checkboxWrapper">
-            <input type="checkbox" v-model="image.drawBackground">
-            <label>Draw background</label>
-        </div>
     
-    </div>
+    </v-card>
 </template>
 
 <script>
@@ -30,18 +48,18 @@ export default {
     },
     data() {
         return {
+            imageFile: null
         }
     },
-    mounted() {
-
-
+    watch: {
+        imageFile(){
+            this.image.file = this.imageFile
+        }
     },
     methods: {
-        fileChanged(event) {
-            this.image.file = event.target.files[0]
-        },
+
         clearInput() {
-            this.$refs.fileInput.value = null
+            this.imageFile = null
             this.image.file = null
         }
     },
@@ -59,26 +77,6 @@ export default {
 </script>
 
 <style scoped>
-.imageWrapper {
-    border: 1px solid #dddddd;
-    padding: 0.5em;
-    display: grid;
-    gap: 0.25em;
-    grid-template-areas: 
-        'fileInput clearButton'
-        'checkboxWrapper checkboxWrapper'
-        'imagePreviewWrapper imagePreviewWrapper';
-    
-    grid-template-rows: auto auto 1fr;
-}
-
-.fileInput {
-    grid-area: fileInput;
-}
-
-.clearButton {
-    grid-area: clearButton;
-}
 
 .imagePreviewWrapper {
     grid-area: imagePreviewWrapper;
@@ -93,10 +91,4 @@ export default {
     height: 100%;
 }
 
-.checkboxWrapper {
-    grid-area: checkboxWrapper;
-    display: flex;
-    align-items: baseline;
-    gap: 0.25em;
-}
 </style>
